@@ -20,10 +20,6 @@ import android.text.TextUtils;
 
 import org.litepal.crud.LitePalSupport;
 import org.litepal.crud.QueryHandler;
-import org.litepal.crud.async.AverageExecutor;
-import org.litepal.crud.async.CountExecutor;
-import org.litepal.crud.async.FindExecutor;
-import org.litepal.crud.async.FindMultiExecutor;
 import org.litepal.exceptions.LitePalSupportException;
 import org.litepal.tablemanager.Connector;
 import org.litepal.util.BaseUtility;
@@ -198,14 +194,6 @@ public class FluentQuery {
         return find(modelClass, false);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindMultiExecutor<T> findAsync(final Class<T> modelClass) {
-        return findAsync(modelClass, false);
-    }
 
 	/**
 	 * It is mostly same as {@link FluentQuery#find(Class)} but an isEager
@@ -234,30 +222,6 @@ public class FluentQuery {
         return queryHandler.onFind(modelClass, mColumns, mConditions, mOrderBy, limit, isEager);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindMultiExecutor<T> findAsync(final Class<T> modelClass, final boolean isEager) {
-        final FindMultiExecutor<T> executor = new FindMultiExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final List<T> t = find(modelClass, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds the first record by the cluster parameters. You can use the below
@@ -280,14 +244,6 @@ public class FluentQuery {
         return findFirst(modelClass, false);
     }
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> findFirstAsync(Class<T> modelClass) {
-        return findFirstAsync(modelClass, false);
-    }
 
     /**
      * It is mostly same as {@link FluentQuery#findFirst(Class)} but an isEager
@@ -316,30 +272,6 @@ public class FluentQuery {
         return null;
     }
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> findFirstAsync(final Class<T> modelClass, final boolean isEager) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = findFirst(modelClass, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds the last record by the cluster parameters. You can use the below
@@ -362,14 +294,6 @@ public class FluentQuery {
         return findLast(modelClass, false);
     }
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> findLastAsync(Class<T> modelClass) {
-        return findLastAsync(modelClass, false);
-    }
 
     /**
      * It is mostly same as {@link FluentQuery#findLast(Class)} but an isEager
@@ -415,30 +339,6 @@ public class FluentQuery {
         return null;
     }
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> findLastAsync(final Class<T> modelClass, final boolean isEager) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = findLast(modelClass, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Count the records.
@@ -462,14 +362,6 @@ public class FluentQuery {
         return count(BaseUtility.changeCase(modelClass.getSimpleName()));
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public CountExecutor countAsync(Class<?> modelClass) {
-        return countAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())));
-    }
 
 	/**
 	 * Count the records.
@@ -494,30 +386,6 @@ public class FluentQuery {
         return queryHandler.onCount(tableName, mConditions);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public CountExecutor countAsync(final String tableName) {
-        final CountExecutor executor = new CountExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int count = count(tableName);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(count);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Calculates the average value on a given column.
@@ -542,14 +410,6 @@ public class FluentQuery {
         return average(BaseUtility.changeCase(modelClass.getSimpleName()), column);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public AverageExecutor averageAsync(final Class<?> modelClass, final String column) {
-        return averageAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), column);
-    }
 
 	/**
 	 * Calculates the average value on a given column.
@@ -575,30 +435,6 @@ public class FluentQuery {
         return queryHandler.onAverage(tableName, column, mConditions);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public AverageExecutor averageAsync(final String tableName, final String column) {
-        final AverageExecutor executor = new AverageExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final double average = average(tableName, column);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(average);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Calculates the maximum value on a given column. The value is returned
@@ -626,14 +462,6 @@ public class FluentQuery {
         return max(BaseUtility.changeCase(modelClass.getSimpleName()), columnName, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> maxAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return maxAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
 	/**
 	 * Calculates the maximum value on a given column. The value is returned
@@ -662,30 +490,6 @@ public class FluentQuery {
         return queryHandler.onMax(tableName, columnName, mConditions, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> maxAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = max(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Calculates the minimum value on a given column. The value is returned
@@ -713,14 +517,6 @@ public class FluentQuery {
         return min(BaseUtility.changeCase(modelClass.getSimpleName()), columnName, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> minAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return minAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
 	/**
 	 * Calculates the minimum value on a given column. The value is returned
@@ -749,30 +545,6 @@ public class FluentQuery {
         return queryHandler.onMin(tableName, columnName, mConditions, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> minAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = min(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Calculates the sum of values on a given column. The value is returned
@@ -800,14 +572,6 @@ public class FluentQuery {
         return sum(BaseUtility.changeCase(modelClass.getSimpleName()), columnName, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> sumAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return sumAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
     /**
 	 * Calculates the sum of values on a given column. The value is returned
@@ -836,29 +600,5 @@ public class FluentQuery {
         return queryHandler.onSum(tableName, columnName, mConditions, columnType);
 	}
 
-	/**
-	 * This method is deprecated and will be removed in the future releases.
-	 * Handle async db operation in your own logic instead.
-	 */
-	@Deprecated
-    public <T> FindExecutor<T> sumAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = sum(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 }

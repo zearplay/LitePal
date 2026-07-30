@@ -20,8 +20,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 
 import org.litepal.crud.DeleteHandler;
@@ -29,12 +27,6 @@ import org.litepal.crud.LitePalSupport;
 import org.litepal.crud.QueryHandler;
 import org.litepal.crud.SaveHandler;
 import org.litepal.crud.UpdateHandler;
-import org.litepal.crud.async.AverageExecutor;
-import org.litepal.crud.async.CountExecutor;
-import org.litepal.crud.async.FindExecutor;
-import org.litepal.crud.async.FindMultiExecutor;
-import org.litepal.crud.async.SaveExecutor;
-import org.litepal.crud.async.UpdateOrDeleteExecutor;
 import org.litepal.exceptions.LitePalSupportException;
 import org.litepal.parser.LitePalAttr;
 import org.litepal.parser.LitePalConfig;
@@ -62,19 +54,9 @@ import java.util.List;
  */
 public class Operator {
 
-    private static Handler handler = new Handler(Looper.getMainLooper());
-
     private static DatabaseListener dbListener = null;
 
     private static final Object DATABASE_CONFIGURATION_LOCK = new Object();
-
-    /**
-     * Get the main thread handler. You don't need this method. It's used by framework only.
-     * @return Main thread handler.
-     */
-    public static Handler getHandler() {
-        return handler;
-    }
 
     /**
      * Initialize to make LitePal ready to work. If you didn't configure LitePalApplication
@@ -350,14 +332,6 @@ public class Operator {
         return count(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())));
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static CountExecutor countAsync(final Class<?> modelClass) {
-        return countAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())));
-    }
 
     /**
      * Count the records.
@@ -382,30 +356,6 @@ public class Operator {
         return cQuery.count(tableName);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static CountExecutor countAsync(final String tableName) {
-        final CountExecutor executor = new CountExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int count = count(tableName);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(count);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Calculates the average value on a given column.
@@ -430,14 +380,6 @@ public class Operator {
         return average(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), column);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static AverageExecutor averageAsync(final Class<?> modelClass, final String column) {
-        return averageAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), column);
-    }
 
     /**
      * Calculates the average value on a given column.
@@ -463,30 +405,6 @@ public class Operator {
         return cQuery.average(tableName, column);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static AverageExecutor averageAsync(final String tableName, final String column) {
-        final AverageExecutor executor = new AverageExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final double average = average(tableName, column);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(average);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Calculates the maximum value on a given column. The value is returned
@@ -514,14 +432,6 @@ public class Operator {
         return max(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> maxAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return maxAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
     /**
      * Calculates the maximum value on a given column. The value is returned
@@ -550,30 +460,6 @@ public class Operator {
         return cQuery.max(tableName, columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> maxAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = max(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Calculates the minimum value on a given column. The value is returned
@@ -601,14 +487,6 @@ public class Operator {
         return min(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> minAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return minAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
     /**
      * Calculates the minimum value on a given column. The value is returned
@@ -637,30 +515,6 @@ public class Operator {
         return cQuery.min(tableName, columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> minAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = min(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Calculates the sum of values on a given column. The value is returned
@@ -688,14 +542,6 @@ public class Operator {
         return sum(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> sumAsync(final Class<?> modelClass, final String columnName, final Class<T> columnType) {
-        return sumAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(modelClass.getName())), columnName, columnType);
-    }
 
     /**
      * Calculates the sum of values on a given column. The value is returned
@@ -724,30 +570,6 @@ public class Operator {
         return cQuery.sum(tableName, columnName, columnType);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> sumAsync(final String tableName, final String columnName, final Class<T> columnType) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = sum(tableName, columnName, columnType);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds the record by a specific id.
@@ -773,14 +595,6 @@ public class Operator {
         return find(modelClass, id, false);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findAsync(Class<T> modelClass, long id) {
-        return findAsync(modelClass, id, false);
-    }
 
     /**
      * It is mostly same as {@link Operator#find(Class, long)} but an isEager
@@ -802,30 +616,6 @@ public class Operator {
         return queryHandler.onFind(modelClass, id, isEager);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findAsync(final Class<T> modelClass, final long id, final boolean isEager) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = find(modelClass, id, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds the first record of a single table.
@@ -846,14 +636,6 @@ public class Operator {
         return findFirst(modelClass, false);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findFirstAsync(Class<T> modelClass) {
-        return findFirstAsync(modelClass, false);
-    }
 
     /**
      * It is mostly same as {@link Operator#findFirst(Class)} but an isEager
@@ -873,30 +655,6 @@ public class Operator {
         return queryHandler.onFindFirst(modelClass, isEager);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findFirstAsync(final Class<T> modelClass, final boolean isEager) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = findFirst(modelClass, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds the last record of a single table.
@@ -917,14 +675,6 @@ public class Operator {
         return findLast(modelClass, false);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findLastAsync(Class<T> modelClass) {
-        return findLastAsync(modelClass, false);
-    }
 
     /**
      * It is mostly same as {@link Operator#findLast(Class)} but an isEager
@@ -944,30 +694,6 @@ public class Operator {
         return queryHandler.onFindLast(modelClass, isEager);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindExecutor<T> findLastAsync(final Class<T> modelClass, final boolean isEager) {
-        final FindExecutor<T> executor = new FindExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final T t = findLast(modelClass, isEager);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Finds multiple records by an id array.
@@ -1003,14 +729,6 @@ public class Operator {
         return findAll(modelClass, false, ids);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindMultiExecutor<T> findAllAsync(Class<T> modelClass, long... ids) {
-        return findAllAsync(modelClass, false, ids);
-    }
 
     /**
      * It is mostly same as {@link Operator#findAll(Class, long...)} but an
@@ -1033,30 +751,6 @@ public class Operator {
         return queryHandler.onFindAll(modelClass, isEager, ids);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T> FindMultiExecutor<T> findAllAsync(final Class<T> modelClass, final boolean isEager, final long... ids) {
-        final FindMultiExecutor<T> executor = new FindMultiExecutor<>();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final List<T> t = findAll(modelClass, isEager, ids);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(t);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Runs the provided SQL and returns a Cursor over the result set. You may
@@ -1123,30 +817,6 @@ public class Operator {
         }
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor deleteAsync(final Class<?> modelClass, final long id) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = delete(modelClass, id);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Deletes all records with details given if they match a set of conditions
@@ -1186,30 +856,6 @@ public class Operator {
         }
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor deleteAllAsync(final Class<?> modelClass, final String... conditions) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = deleteAll(modelClass, conditions);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Deletes all records with details given if they match a set of conditions
@@ -1243,30 +889,6 @@ public class Operator {
         return deleteHandler.onDeleteAll(tableName, conditions);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor deleteAllAsync(final String tableName, final String... conditions) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = deleteAll(tableName, conditions);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Updates the corresponding record by id with ContentValues. Returns the
@@ -1294,30 +916,6 @@ public class Operator {
         return updateHandler.onUpdate(modelClass, id, values);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor updateAsync(final Class<?> modelClass, final ContentValues values, final long id) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = update(modelClass, values, id);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Updates all records with details given if they match a set of conditions
@@ -1354,15 +952,6 @@ public class Operator {
                 modelClass.getName())), values, conditions);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor updateAllAsync(Class<?> modelClass, ContentValues values, String... conditions) {
-        return updateAllAsync(BaseUtility.changeCase(DBUtility.getTableNameByClassName(
-                modelClass.getName())), values, conditions);
-    }
 
     /**
      * Updates all records with details given if they match a set of conditions
@@ -1399,30 +988,6 @@ public class Operator {
         return updateHandler.onUpdateAll(tableName, values, conditions);
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static UpdateOrDeleteExecutor updateAllAsync(final String tableName, final ContentValues values, final String... conditions) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = updateAll(tableName, values, conditions);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Saves the collection into database. <br>
@@ -1466,37 +1031,6 @@ public class Operator {
         }
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public static <T extends LitePalSupport> SaveExecutor saveAllAsync(final Collection<T> collection) {
-        final SaveExecutor executor = new SaveExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                boolean success;
-                try {
-                    saveAll(collection);
-                    success = true;
-                } catch (Exception e) {
-                    success = false;
-                }
-                final boolean result = success;
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(result);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
      * Provide a way to mark all models in collection as deleted. This means these models' save

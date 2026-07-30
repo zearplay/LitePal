@@ -19,8 +19,6 @@ package org.litepal.crud;
 import android.database.sqlite.SQLiteDatabase;
 
 import org.litepal.Operator;
-import org.litepal.crud.async.SaveExecutor;
-import org.litepal.crud.async.UpdateOrDeleteExecutor;
 import org.litepal.exceptions.LitePalSupportException;
 import org.litepal.tablemanager.Connector;
 import org.litepal.util.BaseUtility;
@@ -151,30 +149,6 @@ public class LitePalSupport {
         }
 	}
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public UpdateOrDeleteExecutor deleteAsync() {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = delete();
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Updates the corresponding record by id. Use setXxx to decide which
@@ -213,30 +187,6 @@ public class LitePalSupport {
         }
 	}
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public UpdateOrDeleteExecutor updateAsync(final long id) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = update(id);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Updates all records with details given if they match a set of conditions
@@ -283,30 +233,6 @@ public class LitePalSupport {
         }
 	}
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public UpdateOrDeleteExecutor updateAllAsync(final String... conditions) {
-        final UpdateOrDeleteExecutor executor = new UpdateOrDeleteExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final int rowsAffected = updateAll(conditions);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(rowsAffected);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Saves the model. <br>
@@ -342,30 +268,6 @@ public class LitePalSupport {
         }
 	}
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public SaveExecutor saveAsync() {
-        final SaveExecutor executor = new SaveExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final boolean success = save();
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(success);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
     /**
 	 * Saves the model. <br>
@@ -466,30 +368,6 @@ public class LitePalSupport {
         }
     }
 
-    /**
-     * This method is deprecated and will be removed in the future releases.
-     * Handle async db operation in your own logic instead.
-     */
-    @Deprecated
-    public SaveExecutor saveOrUpdateAsync(final String... conditions) {
-        final SaveExecutor executor = new SaveExecutor();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                final boolean success = saveOrUpdate(conditions);
-                if (executor.getListener() != null) {
-                    Operator.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            executor.getListener().onFinish(success);
-                        }
-                    });
-                }
-            }
-        };
-        executor.submit(runnable);
-        return executor;
-    }
 
 	/**
 	 * Current model is saved or not.

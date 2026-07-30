@@ -17,7 +17,6 @@
 package org.litepal.extension
 
 import org.litepal.FluentQuery
-import org.litepal.crud.async.FindExecutor
 
 /**
  * Extension of FluentQuery class for Kotlin api.
@@ -46,14 +45,6 @@ import org.litepal.crud.async.FindExecutor
 inline fun <reified T> FluentQuery.find(): List<T> = find(T::class.java)
 
 /**
- * Basically same as {@link #find(Class)} but pending to a new thread for executing.
- *
- * @return A FindMultiExecutor instance.
- */
-@Deprecated("This method is deprecated and will be removed in the future releases.", ReplaceWith("Handle async db operation in your own logic instead."))
-inline fun <reified T> FluentQuery.findAsync() = findAsync(T::class.java)
-
-/**
  * It is mostly same as [FluentQuery.find(Class)] but an isEager
  * parameter. If set true the associated models will be loaded as well.
  *
@@ -65,16 +56,6 @@ inline fun <reified T> FluentQuery.findAsync() = findAsync(T::class.java)
  * @return An object list with founded data from database, or an empty list.
  */
 inline fun <reified T> FluentQuery.find(isEager: Boolean): List<T> = find(T::class.java, isEager)
-
-/**
- * Basically same as {@link #find(Class, boolean)} but pending to a new thread for executing.
- *
- * @param isEager
- *            True to load the associated models, false not.
- * @return A FindMultiExecutor instance.
- */
-@Deprecated("This method is deprecated and will be removed in the future releases.", ReplaceWith("Handle async db operation in your own logic instead."))
-inline fun <reified T> FluentQuery.findAsync(isEager: Boolean) = findAsync(T::class.java, isEager)
 
 /**
  * Finds the first record by the cluster parameters. You can use the below
@@ -89,14 +70,6 @@ inline fun <reified T> FluentQuery.findAsync(isEager: Boolean) = findAsync(T::cl
  * @return An object with founded data from database, or null.
  */
 inline fun <reified T> FluentQuery.findFirst(): T? = findFirst(T::class.java)
-
-/**
- * Basically same as {@link #findFirst(Class)} but pending to a new thread for executing.
- *
- * @return A FindExecutor instance.
- */
-@Deprecated("This method is deprecated and will be removed in the future releases.", ReplaceWith("Handle async db operation in your own logic instead."))
-inline fun <reified T> FluentQuery.findFirstAsync(): FindExecutor<T> = findFirstAsync(T::class.java)
 
 /**
  * It is mostly same as [FluentQuery.findFirst(Class)] but an isEager

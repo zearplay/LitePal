@@ -456,6 +456,10 @@ If you find any bug when using LitePal, please report **[here](https://github.co
 
 ## Change logs
 
+### 3.2.5
+ * Remove all deprecated asynchronous CRUD APIs, executors, and callbacks.
+ * Applications must run LitePal's synchronous APIs on their own database executor.
+
 ### 3.2.4
  * Remove the global CRUD monitor that could deadlock the main thread with model class initialization.
  * Serialize deprecated async APIs on one reusable worker instead of creating an unbounded number of threads.
