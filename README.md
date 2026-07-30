@@ -36,7 +36,7 @@ Then add the dependency:
 
 ``` groovy
 dependencies {
-    implementation 'com.github.zearplay:LitePal:3.2.4'
+    implementation 'com.github.zearplay:LitePal:9420851'
 }
 ```
 
