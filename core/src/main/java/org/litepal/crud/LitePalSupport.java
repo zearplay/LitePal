@@ -138,18 +138,16 @@ public class LitePalSupport {
 	 * @return The number of rows affected. Including cascade delete rows.
 	 */
 	public int delete() {
-	    synchronized (LitePalSupport.class) {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                DeleteHandler deleteHandler = new DeleteHandler(db);
-                int rowsAffected = deleteHandler.onDelete(this);
-                baseObjId = 0;
-                db.setTransactionSuccessful();
-                return rowsAffected;
-            } finally {
-                db.endTransaction();
-            }
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            DeleteHandler deleteHandler = new DeleteHandler(db);
+            int rowsAffected = deleteHandler.onDelete(this);
+            baseObjId = 0;
+            db.setTransactionSuccessful();
+            return rowsAffected;
+        } finally {
+            db.endTransaction();
         }
 	}
 
@@ -163,16 +161,14 @@ public class LitePalSupport {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = delete();
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = delete();
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -202,20 +198,18 @@ public class LitePalSupport {
 	 * @return The number of rows affected.
 	 */
 	public int update(long id) {
-        synchronized (LitePalSupport.class) {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-                int rowsAffected = updateHandler.onUpdate(this, id);
-                getFieldsToSetToDefault().clear();
-                db.setTransactionSuccessful();
-                return rowsAffected;
-            } catch (Exception e) {
-                throw new LitePalSupportException(e.getMessage(), e);
-            } finally {
-                db.endTransaction();
-            }
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
+            int rowsAffected = updateHandler.onUpdate(this, id);
+            getFieldsToSetToDefault().clear();
+            db.setTransactionSuccessful();
+            return rowsAffected;
+        } catch (Exception e) {
+            throw new LitePalSupportException(e.getMessage(), e);
+        } finally {
+            db.endTransaction();
         }
 	}
 
@@ -229,16 +223,14 @@ public class LitePalSupport {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = update(id);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = update(id);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -276,20 +268,18 @@ public class LitePalSupport {
 	 * @return The number of rows affected.
 	 */
 	public int updateAll(String... conditions) {
-        synchronized (LitePalSupport.class) {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-                int rowsAffected = updateHandler.onUpdateAll(this, conditions);
-                getFieldsToSetToDefault().clear();
-                db.setTransactionSuccessful();
-                return rowsAffected;
-            } catch (Exception e) {
-                throw new LitePalSupportException(e.getMessage(), e);
-            } finally {
-                db.endTransaction();
-            }
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
+            int rowsAffected = updateHandler.onUpdateAll(this, conditions);
+            getFieldsToSetToDefault().clear();
+            db.setTransactionSuccessful();
+            return rowsAffected;
+        } catch (Exception e) {
+            throw new LitePalSupportException(e.getMessage(), e);
+        } finally {
+            db.endTransaction();
         }
 	}
 
@@ -303,16 +293,14 @@ public class LitePalSupport {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = updateAll(conditions);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = updateAll(conditions);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -364,16 +352,14 @@ public class LitePalSupport {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final boolean success = save();
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(success);
-                            }
-                        });
-                    }
+                final boolean success = save();
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(success);
+                        }
+                    });
                 }
             }
         };
@@ -406,19 +392,17 @@ public class LitePalSupport {
 	 * @throws LitePalSupportException
 	 */
 	public void saveThrows() {
-        synchronized (LitePalSupport.class) {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                SaveHandler saveHandler = new SaveHandler(db);
-                saveHandler.onSave(this);
-                clearAssociatedData();
-                db.setTransactionSuccessful();
-            } catch (Exception e) {
-                throw new LitePalSupportException(e.getMessage(), e);
-            } finally {
-                db.endTransaction();
-            }
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            SaveHandler saveHandler = new SaveHandler(db);
+            saveHandler.onSave(this);
+            clearAssociatedData();
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            throw new LitePalSupportException(e.getMessage(), e);
+        } finally {
+            db.endTransaction();
         }
 	}
 
@@ -455,31 +439,29 @@ public class LitePalSupport {
      */
     @SuppressWarnings("unchecked")
     public boolean saveOrUpdate(String... conditions) {
-        synchronized (LitePalSupport.class) {
-            if (conditions == null || conditions.length == 0) {
-                return save();
-            }
-            List<LitePalSupport> list = (List<LitePalSupport>) Operator.where(conditions).find(getClass());
-            if (list.isEmpty()) {
-                return save();
-            } else {
-                SQLiteDatabase db = Connector.getDatabase();
-                db.beginTransaction();
-                try {
-                    for (LitePalSupport support : list) {
-                        baseObjId = support.getBaseObjId();
-                        SaveHandler saveHandler = new SaveHandler(db);
-                        saveHandler.onSave(this);
-                        clearAssociatedData();
-                    }
-                    db.setTransactionSuccessful();
-                    return true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                } finally {
-                    db.endTransaction();
+        if (conditions == null || conditions.length == 0) {
+            return save();
+        }
+        List<LitePalSupport> list = (List<LitePalSupport>) Operator.where(conditions).find(getClass());
+        if (list.isEmpty()) {
+            return save();
+        } else {
+            SQLiteDatabase db = Connector.getDatabase();
+            db.beginTransaction();
+            try {
+                for (LitePalSupport support : list) {
+                    baseObjId = support.getBaseObjId();
+                    SaveHandler saveHandler = new SaveHandler(db);
+                    saveHandler.onSave(this);
+                    clearAssociatedData();
                 }
+                db.setTransactionSuccessful();
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                db.endTransaction();
             }
         }
     }
@@ -494,16 +476,14 @@ public class LitePalSupport {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final boolean success = saveOrUpdate(conditions);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(success);
-                            }
-                        });
-                    }
+                final boolean success = saveOrUpdate(conditions);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(success);
+                        }
+                    });
                 }
             }
         };

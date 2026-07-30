@@ -106,7 +106,7 @@ public class Connector {
 	/**
 	 * Never call this method. This is only used by internal.
 	 */
-	public static void clearLitePalOpenHelperInstance() {
+	public synchronized static void clearLitePalOpenHelperInstance() {
         if (mLitePalHelper != null) {
             mLitePalHelper.getWritableDatabase().close();
             mLitePalHelper = null;

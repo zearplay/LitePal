@@ -221,19 +221,17 @@ public class FluentQuery {
 	 * @return An object list with founded data from database, or an empty list.
 	 */
 	public <T> List<T> find(Class<T> modelClass, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            String limit;
-            if (mOffset == null) {
-                limit = mLimit;
-            } else {
-                if (mLimit == null) {
-                    mLimit = "0";
-                }
-                limit = mOffset + "," + mLimit;
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        String limit;
+        if (mOffset == null) {
+            limit = mLimit;
+        } else {
+            if (mLimit == null) {
+                mLimit = "0";
             }
-            return queryHandler.onFind(modelClass, mColumns, mConditions, mOrderBy, limit, isEager);
+            limit = mOffset + "," + mLimit;
         }
+        return queryHandler.onFind(modelClass, mColumns, mConditions, mOrderBy, limit, isEager);
 	}
 
 	/**
@@ -246,16 +244,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final List<T> t = find(modelClass, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final List<T> t = find(modelClass, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -307,19 +303,17 @@ public class FluentQuery {
      * @return An object with founded data from database, or null.
      */
     public <T> T findFirst(Class<T> modelClass, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-        	String limitTemp = mLimit;
-        	if (!"0".equals(mLimit)) { // If mLimit not equals to 0, set mLimit to 1 to find the first record.
-        		mLimit = "1";
-			}
-            List<T> list = find(modelClass, isEager);
-        	mLimit = limitTemp; // Don't forget to change it back after finding operation.
-            if (list.size() > 0) {
-				if (list.size() != 1) throw new LitePalSupportException("Found multiple records while only one record should be found at most.");
-                return list.get(0);
-            }
-            return null;
+        String limitTemp = mLimit;
+        if (!"0".equals(mLimit)) { // If mLimit not equals to 0, set mLimit to 1 to find the first record.
+            mLimit = "1";
+		}
+        List<T> list = find(modelClass, isEager);
+        mLimit = limitTemp; // Don't forget to change it back after finding operation.
+        if (list.size() > 0) {
+			if (list.size() != 1) throw new LitePalSupportException("Found multiple records while only one record should be found at most.");
+            return list.get(0);
         }
+        return null;
     }
 
 	/**
@@ -332,16 +326,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = findFirst(modelClass, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = findFirst(modelClass, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -393,36 +385,34 @@ public class FluentQuery {
      * @return An object with founded data from database, or null.
      */
     public <T> T findLast(Class<T> modelClass, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-			String orderByTemp = mOrderBy;
-			String limitTemp = mLimit;
-        	if (TextUtils.isEmpty(mOffset) && TextUtils.isEmpty(mLimit)) { // If mOffset or mLimit is specified, we can't use the strategy in this block to speed up finding.
-				if (TextUtils.isEmpty(mOrderBy)) {
-					// If mOrderBy is null, we can use id desc order, then the first record will be the record value where want to find.
-					mOrderBy = "id desc";
+		String orderByTemp = mOrderBy;
+		String limitTemp = mLimit;
+        if (TextUtils.isEmpty(mOffset) && TextUtils.isEmpty(mLimit)) { // If mOffset or mLimit is specified, we can't use the strategy in this block to speed up finding.
+			if (TextUtils.isEmpty(mOrderBy)) {
+				// If mOrderBy is null, we can use id desc order, then the first record will be the record value where want to find.
+				mOrderBy = "id desc";
+			} else {
+				// If mOrderBy is not null, check if it ends with desc.
+				if (mOrderBy.endsWith(" desc")) {
+					// If mOrderBy ends with desc, then the last record of desc order will be the first record of asc order, so we remove the desc.
+					mOrderBy = mOrderBy.replace(" desc", "");
 				} else {
-					// If mOrderBy is not null, check if it ends with desc.
-					if (mOrderBy.endsWith(" desc")) {
-						// If mOrderBy ends with desc, then the last record of desc order will be the first record of asc order, so we remove the desc.
-						mOrderBy = mOrderBy.replace(" desc", "");
-					} else {
-						// If mOrderBy not ends with desc, then the last record of asc order will be the first record of desc order, so we add the desc.
-						mOrderBy += " desc";
-					}
-				}
-				if (!"0".equals(mLimit)) {
-					mLimit = "1";
+					// If mOrderBy not ends with desc, then the last record of asc order will be the first record of desc order, so we add the desc.
+					mOrderBy += " desc";
 				}
 			}
-            List<T> list = find(modelClass, isEager);
-        	mOrderBy = orderByTemp;
-        	mLimit = limitTemp;
-            int size = list.size();
-            if (size > 0) {
-                return list.get(size - 1);
-            }
-            return null;
+			if (!"0".equals(mLimit)) {
+				mLimit = "1";
+			}
+		}
+        List<T> list = find(modelClass, isEager);
+        mOrderBy = orderByTemp;
+        mLimit = limitTemp;
+        int size = list.size();
+        if (size > 0) {
+            return list.get(size - 1);
         }
+        return null;
     }
 
 	/**
@@ -435,16 +425,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = findLast(modelClass, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = findLast(modelClass, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -502,10 +490,8 @@ public class FluentQuery {
 	 * @return Count of the specified table.
 	 */
 	public int count(String tableName) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onCount(tableName, mConditions);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onCount(tableName, mConditions);
 	}
 
 	/**
@@ -518,16 +504,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int count = count(tableName);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(count);
-                            }
-                        });
-                    }
+                final int count = count(tableName);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(count);
+                        }
+                    });
                 }
             }
         };
@@ -587,10 +571,8 @@ public class FluentQuery {
 	 * @return The average value on a given column.
 	 */
 	public double average(String tableName, String column) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onAverage(tableName, column, mConditions);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onAverage(tableName, column, mConditions);
 	}
 
 	/**
@@ -603,16 +585,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final double average = average(tableName, column);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(average);
-                            }
-                        });
-                    }
+                final double average = average(tableName, column);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(average);
+                        }
+                    });
                 }
             }
         };
@@ -678,10 +658,8 @@ public class FluentQuery {
 	 * @return The maximum value on a given column.
 	 */
 	public <T> T max(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onMax(tableName, columnName, mConditions, columnType);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onMax(tableName, columnName, mConditions, columnType);
 	}
 
 	/**
@@ -694,16 +672,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = max(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = max(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -769,10 +745,8 @@ public class FluentQuery {
 	 * @return The minimum value on a given column.
 	 */
 	public <T> T min(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onMin(tableName, columnName, mConditions, columnType);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onMin(tableName, columnName, mConditions, columnType);
 	}
 
 	/**
@@ -785,16 +759,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = min(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = min(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -860,10 +832,8 @@ public class FluentQuery {
 	 * @return The sum value on a given column.
 	 */
 	public <T> T sum(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onSum(tableName, columnName, mConditions, columnType);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onSum(tableName, columnName, mConditions, columnType);
 	}
 
 	/**
@@ -876,16 +846,14 @@ public class FluentQuery {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = sum(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = sum(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };

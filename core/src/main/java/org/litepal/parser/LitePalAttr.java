@@ -39,7 +39,7 @@ public final class LitePalAttr {
 	/**
 	 * Static litePalAttr object.
 	 */
-	private static LitePalAttr litePalAttr;
+	private static volatile LitePalAttr litePalAttr;
 
 	/**
 	 * The version of database.
@@ -108,7 +108,7 @@ public final class LitePalAttr {
 	/**
 	 * Clear the instance of LitePalAttr.
 	 */
-	public static void clearInstance() {
+	public synchronized static void clearInstance() {
 		litePalAttr = null;
 	}
 

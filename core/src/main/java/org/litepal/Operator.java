@@ -66,6 +66,8 @@ public class Operator {
 
     private static DatabaseListener dbListener = null;
 
+    private static final Object DATABASE_CONFIGURATION_LOCK = new Object();
+
     /**
      * Get the main thread handler. You don't need this method. It's used by framework only.
      * @return Main thread handler.
@@ -124,7 +126,7 @@ public class Operator {
      *          The database to switch to.
      */
     public static void use(LitePalDB litePalDB) {
-        synchronized (LitePalSupport.class) {
+        synchronized (DATABASE_CONFIGURATION_LOCK) {
             LitePalAttr litePalAttr = LitePalAttr.getInstance();
             litePalAttr.setDbName(litePalDB.getDbName());
             litePalAttr.setVersion(litePalDB.getVersion());
@@ -143,7 +145,7 @@ public class Operator {
      * Switch the using database to default with configuration by litepal.xml.
      */
     public static void useDefault() {
-        synchronized (LitePalSupport.class) {
+        synchronized (DATABASE_CONFIGURATION_LOCK) {
             LitePalAttr.clearInstance();
             Connector.clearLitePalOpenHelperInstance();
         }
@@ -156,7 +158,7 @@ public class Operator {
      * @return True if delete success, false otherwise.
      */
     public static boolean deleteDatabase(String dbName) {
-        synchronized (LitePalSupport.class) {
+        synchronized (DATABASE_CONFIGURATION_LOCK) {
             if (!TextUtils.isEmpty(dbName)) {
                 if (!dbName.endsWith(Const.Config.DB_NAME_SUFFIX)) {
                     dbName = dbName + Const.Config.DB_NAME_SUFFIX;
@@ -376,10 +378,8 @@ public class Operator {
      * @return Count of the specified table.
      */
     public static int count(String tableName) {
-        synchronized (LitePalSupport.class) {
-            FluentQuery cQuery = new FluentQuery();
-            return cQuery.count(tableName);
-        }
+        FluentQuery cQuery = new FluentQuery();
+        return cQuery.count(tableName);
     }
 
     /**
@@ -392,16 +392,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int count = count(tableName);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(count);
-                            }
-                        });
-                    }
+                final int count = count(tableName);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(count);
+                        }
+                    });
                 }
             }
         };
@@ -461,10 +459,8 @@ public class Operator {
      * @return The average value on a given column.
      */
     public static double average(String tableName, String column) {
-        synchronized (LitePalSupport.class) {
-            FluentQuery cQuery = new FluentQuery();
-            return cQuery.average(tableName, column);
-        }
+        FluentQuery cQuery = new FluentQuery();
+        return cQuery.average(tableName, column);
     }
 
     /**
@@ -477,16 +473,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final double average = average(tableName, column);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(average);
-                            }
-                        });
-                    }
+                final double average = average(tableName, column);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(average);
+                        }
+                    });
                 }
             }
         };
@@ -552,10 +546,8 @@ public class Operator {
      * @return The maximum value on a given column.
      */
     public static <T> T max(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            FluentQuery cQuery = new FluentQuery();
-            return cQuery.max(tableName, columnName, columnType);
-        }
+        FluentQuery cQuery = new FluentQuery();
+        return cQuery.max(tableName, columnName, columnType);
     }
 
     /**
@@ -568,16 +560,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = max(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = max(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -643,10 +633,8 @@ public class Operator {
      * @return The minimum value on a given column.
      */
     public static <T> T min(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            FluentQuery cQuery = new FluentQuery();
-            return cQuery.min(tableName, columnName, columnType);
-        }
+        FluentQuery cQuery = new FluentQuery();
+        return cQuery.min(tableName, columnName, columnType);
     }
 
     /**
@@ -659,16 +647,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = min(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = min(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -734,10 +720,8 @@ public class Operator {
      * @return The sum value on a given column.
      */
     public static <T> T sum(String tableName, String columnName, Class<T> columnType) {
-        synchronized (LitePalSupport.class) {
-            FluentQuery cQuery = new FluentQuery();
-            return cQuery.sum(tableName, columnName, columnType);
-        }
+        FluentQuery cQuery = new FluentQuery();
+        return cQuery.sum(tableName, columnName, columnType);
     }
 
     /**
@@ -750,16 +734,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = sum(tableName, columnName, columnType);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = sum(tableName, columnName, columnType);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -816,10 +798,8 @@ public class Operator {
      * @return An object with found data from database, or null.
      */
     public static <T> T find(Class<T> modelClass, long id, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onFind(modelClass, id, isEager);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onFind(modelClass, id, isEager);
     }
 
     /**
@@ -832,16 +812,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = find(modelClass, id, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = find(modelClass, id, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -891,10 +869,8 @@ public class Operator {
      * @return An object with data of first row, or null.
      */
     public static <T> T findFirst(Class<T> modelClass, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onFindFirst(modelClass, isEager);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onFindFirst(modelClass, isEager);
     }
 
     /**
@@ -907,16 +883,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = findFirst(modelClass, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = findFirst(modelClass, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -966,10 +940,8 @@ public class Operator {
      * @return An object with data of last row, or null.
      */
     public static <T> T findLast(Class<T> modelClass, boolean isEager) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onFindLast(modelClass, isEager);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onFindLast(modelClass, isEager);
     }
 
     /**
@@ -982,16 +954,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final T t = findLast(modelClass, isEager);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final T t = findLast(modelClass, isEager);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -1059,10 +1029,8 @@ public class Operator {
      */
     public static <T> List<T> findAll(Class<T> modelClass, boolean isEager,
                                       long... ids) {
-        synchronized (LitePalSupport.class) {
-            QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
-            return queryHandler.onFindAll(modelClass, isEager, ids);
-        }
+        QueryHandler queryHandler = new QueryHandler(Connector.getDatabase());
+        return queryHandler.onFindAll(modelClass, isEager, ids);
     }
 
     /**
@@ -1075,16 +1043,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final List<T> t = findAll(modelClass, isEager, ids);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(t);
-                            }
-                        });
-                    }
+                final List<T> t = findAll(modelClass, isEager, ids);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(t);
+                        }
+                    });
                 }
             }
         };
@@ -1109,23 +1075,21 @@ public class Operator {
      *         details.
      */
     public static Cursor findBySQL(String... sql) {
-        synchronized (LitePalSupport.class) {
-            BaseUtility.checkConditionsCorrect(sql);
-            if (sql == null) {
-                return null;
-            }
-            if (sql.length <= 0) {
-                return null;
-            }
-            String[] selectionArgs;
-            if (sql.length == 1) {
-                selectionArgs = null;
-            } else {
-                selectionArgs = new String[sql.length - 1];
-                System.arraycopy(sql, 1, selectionArgs, 0, sql.length - 1);
-            }
-            return Connector.getDatabase().rawQuery(sql[0], selectionArgs);
+        BaseUtility.checkConditionsCorrect(sql);
+        if (sql == null) {
+            return null;
         }
+        if (sql.length <= 0) {
+            return null;
+        }
+        String[] selectionArgs;
+        if (sql.length == 1) {
+            selectionArgs = null;
+        } else {
+            selectionArgs = new String[sql.length - 1];
+            System.arraycopy(sql, 1, selectionArgs, 0, sql.length - 1);
+        }
+        return Connector.getDatabase().rawQuery(sql[0], selectionArgs);
     }
 
     /**
@@ -1146,18 +1110,16 @@ public class Operator {
      * @return The number of rows affected. Including cascade delete rows.
      */
     public static int delete(Class<?> modelClass, long id) {
-        synchronized (LitePalSupport.class) {
-            int rowsAffected;
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                DeleteHandler deleteHandler = new DeleteHandler(db);
-                rowsAffected = deleteHandler.onDelete(modelClass, id);
-                db.setTransactionSuccessful();
-                return rowsAffected;
-            } finally {
-                db.endTransaction();
-            }
+        int rowsAffected;
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            DeleteHandler deleteHandler = new DeleteHandler(db);
+            rowsAffected = deleteHandler.onDelete(modelClass, id);
+            db.setTransactionSuccessful();
+            return rowsAffected;
+        } finally {
+            db.endTransaction();
         }
     }
 
@@ -1171,16 +1133,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = delete(modelClass, id);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = delete(modelClass, id);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -1213,18 +1173,16 @@ public class Operator {
      * @return The number of rows affected.
      */
     public static int deleteAll(Class<?> modelClass, String... conditions) {
-        synchronized (LitePalSupport.class) {
-            int rowsAffected;
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                DeleteHandler deleteHandler = new DeleteHandler(db);
-                rowsAffected = deleteHandler.onDeleteAll(modelClass, conditions);
-                db.setTransactionSuccessful();
-                return rowsAffected;
-            } finally {
-                db.endTransaction();
-            }
+        int rowsAffected;
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            DeleteHandler deleteHandler = new DeleteHandler(db);
+            rowsAffected = deleteHandler.onDeleteAll(modelClass, conditions);
+            db.setTransactionSuccessful();
+            return rowsAffected;
+        } finally {
+            db.endTransaction();
         }
     }
 
@@ -1238,16 +1196,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = deleteAll(modelClass, conditions);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = deleteAll(modelClass, conditions);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -1283,10 +1239,8 @@ public class Operator {
      * @return The number of rows affected.
      */
     public static int deleteAll(String tableName, String... conditions) {
-        synchronized (LitePalSupport.class) {
-            DeleteHandler deleteHandler = new DeleteHandler(Connector.getDatabase());
-            return deleteHandler.onDeleteAll(tableName, conditions);
-        }
+        DeleteHandler deleteHandler = new DeleteHandler(Connector.getDatabase());
+        return deleteHandler.onDeleteAll(tableName, conditions);
     }
 
     /**
@@ -1299,16 +1253,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = deleteAll(tableName, conditions);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = deleteAll(tableName, conditions);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -1338,10 +1290,8 @@ public class Operator {
      * @return The number of rows affected.
      */
     public static int update(Class<?> modelClass, ContentValues values, long id) {
-        synchronized (LitePalSupport.class) {
-            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-            return updateHandler.onUpdate(modelClass, id, values);
-        }
+        UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
+        return updateHandler.onUpdate(modelClass, id, values);
     }
 
     /**
@@ -1354,16 +1304,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = update(modelClass, values, id);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = update(modelClass, values, id);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -1447,10 +1395,8 @@ public class Operator {
      */
     public static int updateAll(String tableName, ContentValues values,
                                 String... conditions) {
-        synchronized (LitePalSupport.class) {
-            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-            return updateHandler.onUpdateAll(tableName, values, conditions);
-        }
+        UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
+        return updateHandler.onUpdateAll(tableName, values, conditions);
     }
 
     /**
@@ -1463,16 +1409,14 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    final int rowsAffected = updateAll(tableName, values, conditions);
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(rowsAffected);
-                            }
-                        });
-                    }
+                final int rowsAffected = updateAll(tableName, values, conditions);
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(rowsAffected);
+                        }
+                    });
                 }
             }
         };
@@ -1507,20 +1451,18 @@ public class Operator {
      * @return True if all records in collection are saved. False none record in collection is saved. There won't be partial saved condition.
      */
     public static <T extends LitePalSupport> boolean saveAll(Collection<T> collection) {
-        synchronized (LitePalSupport.class) {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
-                SaveHandler saveHandler = new SaveHandler(db);
-                saveHandler.onSaveAll(collection);
-                db.setTransactionSuccessful();
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            } finally {
-                db.endTransaction();
-            }
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            SaveHandler saveHandler = new SaveHandler(db);
+            saveHandler.onSaveAll(collection);
+            db.setTransactionSuccessful();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.endTransaction();
         }
     }
 
@@ -1534,23 +1476,21 @@ public class Operator {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                synchronized (LitePalSupport.class) {
-                    boolean success;
-                    try {
-                        saveAll(collection);
-                        success = true;
-                    } catch (Exception e) {
-                        success = false;
-                    }
-                    final boolean result = success;
-                    if (executor.getListener() != null) {
-                        Operator.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                executor.getListener().onFinish(result);
-                            }
-                        });
-                    }
+                boolean success;
+                try {
+                    saveAll(collection);
+                    success = true;
+                } catch (Exception e) {
+                    success = false;
+                }
+                final boolean result = success;
+                if (executor.getListener() != null) {
+                    Operator.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            executor.getListener().onFinish(result);
+                        }
+                    });
                 }
             }
         };

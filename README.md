@@ -20,11 +20,23 @@ Experience the magic right now and have fun!
 ## Quick Setup
 #### 1. Include library
 
-Edit your **build.gradle** file and add below dependency.
+Add JitPack to your repositories:
+
+``` groovy
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Then add the dependency:
 
 ``` groovy
 dependencies {
-    implementation 'org.litepal.guolindev:core:3.2.3'
+    implementation 'com.github.zearplay:LitePal:3.2.4'
 }
 ```
 
@@ -443,6 +455,12 @@ If you are using ProGuard you might need to add the following option:
 If you find any bug when using LitePal, please report **[here](https://github.com/LitePalFramework/LitePal/issues/new)**. Thanks for helping us making better.
 
 ## Change logs
+
+### 3.2.4
+ * Remove the global CRUD monitor that could deadlock the main thread with model class initialization.
+ * Serialize deprecated async APIs on one reusable worker instead of creating an unbounded number of threads.
+ * Improve concurrent initialization safety for database configuration and helper replacement.
+ * Add JitPack publication support.
 
 ### 3.2.3
  * Support database index by adding @Column(index = true) on field.
