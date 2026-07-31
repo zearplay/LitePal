@@ -81,25 +81,30 @@ public class Connector {
 	 * 
 	 * @return LitePalHelper object.
 	 */
-	private static LitePalOpenHelper buildConnection() {
-		LitePalAttr litePalAttr = LitePalAttr.getInstance();
-		litePalAttr.checkSelfValid();
-		if (mLitePalHelper == null) {
-			String dbName = litePalAttr.getDbName();
-			if ("external".equalsIgnoreCase(litePalAttr.getStorage())) {
-				dbName = LitePalApplication.getContext().getExternalFilesDir("") + "/databases/" + dbName;
-			} else if (!"internal".equalsIgnoreCase(litePalAttr.getStorage()) && !TextUtils.isEmpty(litePalAttr.getStorage())) {
-                // internal or empty means internal storage, neither or them means sdcard storage
-                String dbPath = Environment.getExternalStorageDirectory().getPath() + "/" + litePalAttr.getStorage();
-                dbPath = dbPath.replace("//", "/");
-                File path = new File(dbPath);
-                if (!path.exists()) {
-                    path.mkdirs();
-                }
-                dbName = dbPath + "/" + dbName;
-            }
-			mLitePalHelper = new LitePalOpenHelper(dbName, litePalAttr.getVersion());
-		}
+		private static LitePalOpenHelper buildConnection() {
+			LitePalAttr litePalAttr = LitePalAttr.getInstance();
+			litePalAttr.checkSelfValid();
+			if (mLitePalHelper == null) {
+				String dbName = litePalAttr.getDbName();
+				if ("external".equalsIgnoreCase(litePalAttr.getStorage())) {
+					File externalFilesDir = LitePalApplication.getContext().getExternalFilesDir(null);
+					if (externalFilesDir != null) {
+						File databaseDir = new File(externalFilesDir, "databases");
+						if ((databaseDir.isDirectory() || databaseDir.mkdirs()) && databaseDir.canWrite()) {
+							dbName = new File(databaseDir, dbName).getAbsolutePath();
+						}
+					}
+				} else if (!"internal".equalsIgnoreCase(litePalAttr.getStorage()) && !TextUtils.isEmpty(litePalAttr.getStorage())) {
+	                // internal or empty means internal storage, neither or them means sdcard storage
+	                String dbPath = Environment.getExternalStorageDirectory().getPath() + "/" + litePalAttr.getStorage();
+	                dbPath = dbPath.replace("//", "/");
+	                File path = new File(dbPath);
+	                if ((path.isDirectory() || path.mkdirs()) && path.canWrite()) {
+						dbName = new File(path, dbName).getAbsolutePath();
+	                }
+	            }
+				mLitePalHelper = new LitePalOpenHelper(dbName, litePalAttr.getVersion());
+			}
 		return mLitePalHelper;
 	}
 
@@ -107,10 +112,10 @@ public class Connector {
 	 * Never call this method. This is only used by internal.
 	 */
 	public synchronized static void clearLitePalOpenHelperInstance() {
-        if (mLitePalHelper != null) {
-            mLitePalHelper.getWritableDatabase().close();
-            mLitePalHelper = null;
-        }
+	        if (mLitePalHelper != null) {
+	            mLitePalHelper.close();
+	            mLitePalHelper = null;
+	        }
 	}
 
 }

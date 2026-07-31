@@ -135,19 +135,20 @@ public class LitePalSupport {
 	 * 
 	 * @return The number of rows affected. Including cascade delete rows.
 	 */
-	public int delete() {
-        SQLiteDatabase db = Connector.getDatabase();
-        db.beginTransaction();
-        try {
-            DeleteHandler deleteHandler = new DeleteHandler(db);
-            int rowsAffected = deleteHandler.onDelete(this);
-            baseObjId = 0;
-            db.setTransactionSuccessful();
-            return rowsAffected;
-        } finally {
-            db.endTransaction();
-        }
-	}
+		public int delete() {
+	        SQLiteDatabase db = Connector.getDatabase();
+	        db.beginTransaction();
+	        int rowsAffected;
+	        try {
+	            DeleteHandler deleteHandler = new DeleteHandler(db);
+	            rowsAffected = deleteHandler.onDelete(this);
+	            db.setTransactionSuccessful();
+	        } finally {
+	            db.endTransaction();
+	        }
+	        baseObjId = 0;
+	        return rowsAffected;
+		}
 
 
 	/**
@@ -171,21 +172,22 @@ public class LitePalSupport {
 	 *            Which record to update.
 	 * @return The number of rows affected.
 	 */
-	public int update(long id) {
-        SQLiteDatabase db = Connector.getDatabase();
-        db.beginTransaction();
-        try {
-            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-            int rowsAffected = updateHandler.onUpdate(this, id);
-            getFieldsToSetToDefault().clear();
-            db.setTransactionSuccessful();
-            return rowsAffected;
-        } catch (Exception e) {
-            throw new LitePalSupportException(e.getMessage(), e);
-        } finally {
-            db.endTransaction();
-        }
-	}
+		public int update(long id) {
+	        SQLiteDatabase db = Connector.getDatabase();
+	        db.beginTransaction();
+	        int rowsAffected;
+	        try {
+	            UpdateHandler updateHandler = new UpdateHandler(db);
+	            rowsAffected = updateHandler.onUpdate(this, id);
+	            db.setTransactionSuccessful();
+	        } catch (Exception e) {
+	            throw new LitePalSupportException(e.getMessage(), e);
+	        } finally {
+	            db.endTransaction();
+	        }
+	        getFieldsToSetToDefault().clear();
+	        return rowsAffected;
+		}
 
 
 	/**
@@ -217,21 +219,22 @@ public class LitePalSupport {
 	 *            all rows.
 	 * @return The number of rows affected.
 	 */
-	public int updateAll(String... conditions) {
-        SQLiteDatabase db = Connector.getDatabase();
-        db.beginTransaction();
-        try {
-            UpdateHandler updateHandler = new UpdateHandler(Connector.getDatabase());
-            int rowsAffected = updateHandler.onUpdateAll(this, conditions);
-            getFieldsToSetToDefault().clear();
-            db.setTransactionSuccessful();
-            return rowsAffected;
-        } catch (Exception e) {
-            throw new LitePalSupportException(e.getMessage(), e);
-        } finally {
-            db.endTransaction();
-        }
-	}
+		public int updateAll(String... conditions) {
+	        SQLiteDatabase db = Connector.getDatabase();
+	        db.beginTransaction();
+	        int rowsAffected;
+	        try {
+	            UpdateHandler updateHandler = new UpdateHandler(db);
+	            rowsAffected = updateHandler.onUpdateAll(this, conditions);
+	            db.setTransactionSuccessful();
+	        } catch (Exception e) {
+	            throw new LitePalSupportException(e.getMessage(), e);
+	        } finally {
+	            db.endTransaction();
+	        }
+	        getFieldsToSetToDefault().clear();
+	        return rowsAffected;
+		}
 
 
 	/**
@@ -293,20 +296,20 @@ public class LitePalSupport {
 	 * 
 	 * @throws LitePalSupportException
 	 */
-	public void saveThrows() {
-        SQLiteDatabase db = Connector.getDatabase();
-        db.beginTransaction();
-        try {
-            SaveHandler saveHandler = new SaveHandler(db);
-            saveHandler.onSave(this);
-            clearAssociatedData();
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            throw new LitePalSupportException(e.getMessage(), e);
-        } finally {
-            db.endTransaction();
-        }
-	}
+		public void saveThrows() {
+	        SQLiteDatabase db = Connector.getDatabase();
+	        db.beginTransaction();
+	        try {
+	            SaveHandler saveHandler = new SaveHandler(db);
+	            saveHandler.onSave(this);
+	            db.setTransactionSuccessful();
+	        } catch (Exception e) {
+	            throw new LitePalSupportException(e.getMessage(), e);
+	        } finally {
+	            db.endTransaction();
+	        }
+	        clearAssociatedData();
+		}
 
     /**
      * Save the model if the conditions data not exist, or update the matching models if the conditions data exist. <br>
@@ -344,28 +347,34 @@ public class LitePalSupport {
         if (conditions == null || conditions.length == 0) {
             return save();
         }
-        List<LitePalSupport> list = (List<LitePalSupport>) Operator.where(conditions).find(getClass());
-        if (list.isEmpty()) {
-            return save();
-        } else {
-            SQLiteDatabase db = Connector.getDatabase();
-            db.beginTransaction();
-            try {
+        long originalBaseObjId = baseObjId;
+        boolean succeeded = false;
+        SQLiteDatabase db = Connector.getDatabase();
+        db.beginTransaction();
+        try {
+            List<LitePalSupport> list = (List<LitePalSupport>) Operator.select("id")
+                    .where(conditions).find(getClass());
+            SaveHandler saveHandler = new SaveHandler(db);
+            if (list.isEmpty()) {
+                saveHandler.onSave(this);
+            } else {
                 for (LitePalSupport support : list) {
                     baseObjId = support.getBaseObjId();
-                    SaveHandler saveHandler = new SaveHandler(db);
                     saveHandler.onSave(this);
-                    clearAssociatedData();
                 }
-                db.setTransactionSuccessful();
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            } finally {
-                db.endTransaction();
             }
+            db.setTransactionSuccessful();
+            succeeded = true;
+        } catch (Exception e) {
+            baseObjId = originalBaseObjId;
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
         }
+        if (succeeded) {
+            clearAssociatedData();
+        }
+        return succeeded;
     }
 
 

@@ -191,7 +191,7 @@ public abstract class LitePalBase {
             List<Field> supportedFields = new ArrayList<>();
             Class<?> clazz;
             try {
-                clazz = Class.forName(className);
+                clazz = loadClassWithoutInitialization(className);
             } catch (ClassNotFoundException e) {
                 throw new DatabaseGenerateException(DatabaseGenerateException.CLASS_NOT_FOUND + className);
             }
@@ -214,7 +214,7 @@ public abstract class LitePalBase {
             List<Field> supportedGenericFields = new ArrayList<>();
             Class<?> clazz;
             try {
-                clazz = Class.forName(className);
+                clazz = loadClassWithoutInitialization(className);
             } catch (ClassNotFoundException e) {
                 throw new DatabaseGenerateException(DatabaseGenerateException.CLASS_NOT_FOUND + className);
             }
@@ -310,13 +310,30 @@ public abstract class LitePalBase {
      */
     protected Class<?> getGenericTypeClass(Field field) {
         Type genericType = field.getGenericType();
-        if (genericType != null) {
-            if (genericType instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) genericType;
-                return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+        if (genericType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type actualType = parameterizedType.getActualTypeArguments()[0];
+            if (actualType instanceof Class<?>) {
+                return (Class<?>) actualType;
+            }
+            if (actualType instanceof ParameterizedType) {
+                Type rawType = ((ParameterizedType) actualType).getRawType();
+                if (rawType instanceof Class<?>) {
+                    return (Class<?>) rawType;
+                }
             }
         }
         return null;
+    }
+
+    /**
+     * Loads model metadata without running the model's static initializer.
+     * Database creation and upgrade run while SQLiteOpenHelper owns its monitor.
+     * Initializing an application model in that section can deadlock if the
+     * initializer performs another LitePal operation on a different thread.
+     */
+    private Class<?> loadClassWithoutInitialization(String className) throws ClassNotFoundException {
+        return Class.forName(className, false, LitePalBase.class.getClassLoader());
     }
 
     private void recursiveSupportedFields(Class<?> clazz, List<Field> supportedFields) {
@@ -378,7 +395,7 @@ public abstract class LitePalBase {
 	 */
 	private void analyzeClassFields(String className, int action) {
 		try {
-            Class<?> dynamicClass = Class.forName(className);
+	            Class<?> dynamicClass = loadClassWithoutInitialization(className);
 			Field[] fields = dynamicClass.getDeclaredFields();
 			for (Field field : fields) {
 				if (isNonPrimitive(field)) {
@@ -447,7 +464,7 @@ public abstract class LitePalBase {
 		// If the mapping list contains the class name
 		// defined in one class.
 		if (LitePalAttr.getInstance().getClassNames().contains(fieldTypeClass.getName())) {
-			Class<?> reverseDynamicClass = Class.forName(fieldTypeClass.getName());
+				Class<?> reverseDynamicClass = loadClassWithoutInitialization(fieldTypeClass.getName());
 			Field[] reverseFields = reverseDynamicClass.getDeclaredFields();
 			// Look up if there's a reverse association
 			// definition in the reverse class.
@@ -532,7 +549,7 @@ public abstract class LitePalBase {
 			// If the mapping list contains the genericTypeName, begin to check
 			// this genericTypeName class.
 			if (LitePalAttr.getInstance().getClassNames().contains(genericTypeName)) {
-				Class<?> reverseDynamicClass = Class.forName(genericTypeName);
+					Class<?> reverseDynamicClass = loadClassWithoutInitialization(genericTypeName);
 				Field[] reverseFields = reverseDynamicClass.getDeclaredFields();
 				// Look up if there's a reverse association
 				// definition in the reverse class.

@@ -254,7 +254,7 @@ public class BaseUtility {
      */
     public static boolean isClassAndMethodExist(String className, String methodName) {
         try {
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className, false, BaseUtility.class.getClassLoader());
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
                 if (methodName.equals(method.getName())) {

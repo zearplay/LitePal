@@ -48,7 +48,7 @@ public class LitePalApplication extends Application {
 	 * Global application context.
 	 */
 	@SuppressLint("StaticFieldLeak")
-	public static Context sContext;
+	public static volatile Context sContext;
 
 	public static Handler sHandler = new Handler(Looper.getMainLooper());
 

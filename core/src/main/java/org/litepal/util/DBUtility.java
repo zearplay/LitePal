@@ -444,20 +444,27 @@ public class DBUtility {
         Cursor innerCursor = null;
         try {
             cursor = db.rawQuery("pragma index_list(" + tableName +")", null);
-            if (cursor.moveToFirst()) {
-                do {
-                    boolean unique = cursor.getInt(cursor.getColumnIndexOrThrow("unique")) == 1;
-					String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-					innerCursor = db.rawQuery("pragma index_info(" + name + ")", null);
-					if (innerCursor.moveToFirst()) {
-						String columnName = innerCursor.getString(innerCursor.getColumnIndexOrThrow("name"));
-						if (unique) {
-							uniqueColumns.add(columnName);
-						} else {
-							indexColumns.add(columnName);
+	            if (cursor.moveToFirst()) {
+	                do {
+	                    boolean unique = cursor.getInt(cursor.getColumnIndexOrThrow("unique")) == 1;
+						String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+						try {
+							innerCursor = db.rawQuery("pragma index_info(" + name + ")", null);
+							if (innerCursor.moveToFirst()) {
+								String columnName = innerCursor.getString(innerCursor.getColumnIndexOrThrow("name"));
+								if (unique) {
+									uniqueColumns.add(columnName);
+								} else {
+									indexColumns.add(columnName);
+								}
+							}
+						} finally {
+							if (innerCursor != null) {
+								innerCursor.close();
+								innerCursor = null;
+							}
 						}
-					}
-                } while (cursor.moveToNext());
+	                } while (cursor.moveToNext());
             }
         } catch (Exception e) {
             e.printStackTrace();

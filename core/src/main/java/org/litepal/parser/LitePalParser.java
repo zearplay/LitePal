@@ -111,14 +111,14 @@ public class LitePalParser {
 	 * could be thrown. Be careful of writing litepal.xml file, or developer's
 	 * application may be crash.
 	 */
-    private void useSAXParser() {
+	    private void useSAXParser() {
 		LitePalContentHandler handler;
-		try {
+		try (InputStream inputStream = getConfigInputStream()) {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			XMLReader xmlReader = factory.newSAXParser().getXMLReader();
 			handler = new LitePalContentHandler();
 			xmlReader.setContentHandler(handler);
-			xmlReader.parse(new InputSource(getConfigInputStream()));
+			xmlReader.parse(new InputSource(inputStream));
 		} catch (NotFoundException e) {
 			throw new ParseConfigurationFileException(
 					ParseConfigurationFileException.CAN_NOT_FIND_LITEPAL_FILE);
@@ -141,12 +141,12 @@ public class LitePalParser {
 	 * could be thrown. Be careful of writing litepal.xml file, or developer's
 	 * application may be crash.
 	 */
-    private LitePalConfig usePullParse() {
-		try {
+	    private LitePalConfig usePullParse() {
+		try (InputStream inputStream = getConfigInputStream()) {
 			LitePalConfig litePalConfig = new LitePalConfig();
 			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 			XmlPullParser xmlPullParser = factory.newPullParser();
-			xmlPullParser.setInput(getConfigInputStream(), "UTF-8");
+			xmlPullParser.setInput(inputStream, "UTF-8");
 			int eventType = xmlPullParser.getEventType();
 			while (eventType != XmlPullParser.END_DOCUMENT) {
 				String nodeName = xmlPullParser.getName();
@@ -176,7 +176,7 @@ public class LitePalParser {
 				eventType = xmlPullParser.next();
 			}
             return litePalConfig;
-		} catch (XmlPullParserException e) {
+		} catch (XmlPullParserException | NumberFormatException e) {
 			throw new ParseConfigurationFileException(
 					ParseConfigurationFileException.FILE_FORMAT_IS_NOT_CORRECT);
 		} catch (IOException e) {

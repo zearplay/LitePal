@@ -134,6 +134,11 @@ public class MyOwnApplication extends Application {
 }
 ```
 Make sure to call this method as early as you can. In the **onCreate()** method of Application will be fine. And always remember to use the application context as parameter. Do not use any instance of activity or service as parameter, or memory leaks might happen.
+
+LitePal's CRUD APIs are synchronous. Run database reads and writes on a dedicated
+background database executor, especially the first operation that may create or
+upgrade the database. Do not execute them from the Android main thread.
+
 ## Get Started
 After setup, you can experience the powerful functions now.
 
@@ -455,6 +460,13 @@ If you are using ProGuard you might need to add the following option:
 If you find any bug when using LitePal, please report **[here](https://github.com/LitePalFramework/LitePal/issues/new)**. Thanks for helping us making better.
 
 ## Change logs
+
+### 3.2.6
+ * Prevent transaction and model-initialization lock leaks that could cause ANRs.
+ * Avoid loading full rows in `saveOrUpdate()` and make its read/write sequence atomic.
+ * Replace deep ID `OR` expressions with flat `IN` expressions for large batches.
+ * Close configuration streams, index cursors, and database helpers safely.
+ * Parameterize cascade-delete conditions and harden reflection/query edge cases.
 
 ### 3.2.5
  * Remove all deprecated asynchronous CRUD APIs, executors, and callbacks.

@@ -523,17 +523,7 @@ abstract class DataHandler extends LitePalBase {
 	 * @return The where clause to execute.
 	 */
 	protected String getWhereOfIdsWithOr(Collection<Long> ids) {
-		StringBuilder whereClause = new StringBuilder();
-		boolean needOr = false;
-		for (long id : ids) {
-			if (needOr) {
-				whereClause.append(" or ");
-			}
-			needOr = true;
-			whereClause.append("id = ");
-			whereClause.append(id);
-		}
-		return changeCase(whereClause.toString());
+		return getWhereOfIds("id", ids);
 	}
 
 	/**
@@ -544,17 +534,38 @@ abstract class DataHandler extends LitePalBase {
 	 * @return The where clause to execute.
 	 */
 	protected String getWhereOfIdsWithOr(long... ids) {
-		StringBuilder whereClause = new StringBuilder();
-		boolean needOr = false;
+		List<Long> idList = new ArrayList<>(ids.length);
 		for (long id : ids) {
-			if (needOr) {
-				whereClause.append(" or ");
-			}
-			needOr = true;
-			whereClause.append("id = ");
-			whereClause.append(id);
+			idList.add(id);
 		}
-		return changeCase(whereClause.toString());
+		return getWhereOfIds("id", idList);
+	}
+
+	/**
+	 * Builds an IN expression from numeric IDs. Using an OR expression for each
+	 * ID can exceed SQLite's expression tree depth for large collections.
+	 */
+	protected String getWhereOfIds(String columnName, Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return "0";
+		}
+		StringBuilder whereClause = new StringBuilder(columnName).append(" in (");
+		boolean needsComma = false;
+		for (Long id : ids) {
+			if (id == null) {
+				continue;
+			}
+			if (needsComma) {
+				whereClause.append(',');
+			}
+			whereClause.append(id);
+			needsComma = true;
+		}
+		if (!needsComma) {
+			return "0";
+		}
+		whereClause.append(')');
+		return whereClause.toString();
 	}
 
 	/**
@@ -1330,7 +1341,8 @@ abstract class DataHandler extends LitePalBase {
                 value = true;
             }
         } else if (field.getType() == char.class || field.getType() == Character.class) {
-            value = ((String) value).charAt(0);
+            String stringValue = (String) value;
+            value = stringValue.isEmpty() ? '\0' : stringValue.charAt(0);
         } else if (field.getType() == Date.class) {
             long date = (long) value;
             if (date == Long.MAX_VALUE) { // Long.MAX_VALUE is a date that will never reach, which represents null in our case.
@@ -1356,8 +1368,8 @@ abstract class DataHandler extends LitePalBase {
                     value = decryptValue(annotation.algorithm(), value);
                 }
             } else if (modelInstance.getClass().getName().equals(genericTypeName)) {
-                if (value instanceof Long || value instanceof Integer) {
-                    value = Operator.find(modelInstance.getClass(), (long) value);
+                if (value instanceof Number) {
+                    value = Operator.find(modelInstance.getClass(), ((Number) value).longValue());
                 }
             }
             collection.add(value);

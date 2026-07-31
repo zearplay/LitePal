@@ -29,6 +29,7 @@ import org.litepal.util.DBUtility;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -231,16 +232,12 @@ public class UpdateHandler extends DataHandler {
                             if (BaseUtility.isGenericTypeSupported(genericTypeName)) {
                                 String tableName = DBUtility.getGenericTableName(baseObj.getClassName(), field.getName());
                                 String genericValueIdColumnName = DBUtility.getGenericValueIdColumnName(baseObj.getClassName());
-                                StringBuilder whereClause = new StringBuilder();
-                                boolean needOr = false;
+                                List<Long> idList = new ArrayList<>(ids.length);
                                 for (long id : ids) {
-                                    if (needOr) {
-                                        whereClause.append(" or ");
-                                    }
-                                    whereClause.append(genericValueIdColumnName).append(" = ").append(id);
-                                    needOr = true;
+                                    idList.add(id);
                                 }
-                                mDatabase.delete(tableName, whereClause.toString(), null);
+                                mDatabase.delete(tableName,
+                                        getWhereOfIds(genericValueIdColumnName, idList), null);
                             }
                         }
                     } else {

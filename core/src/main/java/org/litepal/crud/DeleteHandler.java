@@ -220,26 +220,17 @@ public class DeleteHandler extends DataHandler {
 			String tableName = getTableName(modelClass);
 			String fkName = getForeignKeyColumnName(tableName);
 			StringBuilder whereClause = new StringBuilder();
-			whereClause.append(fkName).append(" in (select id from ");
-			whereClause.append(tableName);
-			if (conditions != null && conditions.length > 0) {
-				whereClause.append(" where ").append(buildConditionString(conditions));
+				whereClause.append(fkName).append(" in (select id from ");
+				whereClause.append(tableName);
+				if (conditions != null && conditions.length > 0) {
+					whereClause.append(" where ").append(getWhereClause(conditions));
+				}
+				whereClause.append(")");
+				rowsAffected += mDatabase.delete(associatedTableName,
+						whereClause.toString(), getWhereArgs(conditions));
 			}
-			whereClause.append(")");
-			rowsAffected += mDatabase.delete(associatedTableName,
-					BaseUtility.changeCase(whereClause.toString()), null);
+			return rowsAffected;
 		}
-		return rowsAffected;
-	}
-	
-	private String buildConditionString(String... conditions) {
-		  int argCount = conditions.length - 1;
-          String whereClause = conditions[0];
-          for (int i = 0; i < argCount; i++) {
-                  whereClause = whereClause.replaceFirst("\\?", "'" + conditions[i+1] + "'");
-          }
-          return whereClause;
-	}
 
 	/**
 	 * Analyze the associations of baseObj and store the result in it. The

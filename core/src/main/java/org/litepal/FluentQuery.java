@@ -258,19 +258,22 @@ public class FluentQuery {
      *            True to load the associated models, false not.
      * @return An object with founded data from database, or null.
      */
-    public <T> T findFirst(Class<T> modelClass, boolean isEager) {
-        String limitTemp = mLimit;
-        if (!"0".equals(mLimit)) { // If mLimit not equals to 0, set mLimit to 1 to find the first record.
-            mLimit = "1";
-		}
-        List<T> list = find(modelClass, isEager);
-        mLimit = limitTemp; // Don't forget to change it back after finding operation.
-        if (list.size() > 0) {
-			if (list.size() != 1) throw new LitePalSupportException("Found multiple records while only one record should be found at most.");
-            return list.get(0);
-        }
-        return null;
-    }
+	    public <T> T findFirst(Class<T> modelClass, boolean isEager) {
+	        String limitTemp = mLimit;
+	        try {
+		        if (!"0".equals(mLimit)) { // If mLimit not equals to 0, set mLimit to 1 to find the first record.
+		            mLimit = "1";
+				}
+		        List<T> list = find(modelClass, isEager);
+		        if (list.size() > 0) {
+					if (list.size() != 1) throw new LitePalSupportException("Found multiple records while only one record should be found at most.");
+		            return list.get(0);
+		        }
+		        return null;
+	        } finally {
+		        mLimit = limitTemp;
+			}
+	    }
 
 
     /**
@@ -308,36 +311,39 @@ public class FluentQuery {
      *            True to load the associated models, false not.
      * @return An object with founded data from database, or null.
      */
-    public <T> T findLast(Class<T> modelClass, boolean isEager) {
-		String orderByTemp = mOrderBy;
-		String limitTemp = mLimit;
-        if (TextUtils.isEmpty(mOffset) && TextUtils.isEmpty(mLimit)) { // If mOffset or mLimit is specified, we can't use the strategy in this block to speed up finding.
-			if (TextUtils.isEmpty(mOrderBy)) {
-				// If mOrderBy is null, we can use id desc order, then the first record will be the record value where want to find.
-				mOrderBy = "id desc";
-			} else {
-				// If mOrderBy is not null, check if it ends with desc.
-				if (mOrderBy.endsWith(" desc")) {
-					// If mOrderBy ends with desc, then the last record of desc order will be the first record of asc order, so we remove the desc.
-					mOrderBy = mOrderBy.replace(" desc", "");
-				} else {
-					// If mOrderBy not ends with desc, then the last record of asc order will be the first record of desc order, so we add the desc.
-					mOrderBy += " desc";
+	    public <T> T findLast(Class<T> modelClass, boolean isEager) {
+			String orderByTemp = mOrderBy;
+			String limitTemp = mLimit;
+			try {
+		        if (TextUtils.isEmpty(mOffset) && TextUtils.isEmpty(mLimit)) { // If mOffset or mLimit is specified, we can't use the strategy in this block to speed up finding.
+					if (TextUtils.isEmpty(mOrderBy)) {
+						// If mOrderBy is null, we can use id desc order, then the first record will be the record value where want to find.
+						mOrderBy = "id desc";
+					} else {
+						// If mOrderBy is not null, check if it ends with desc.
+						if (mOrderBy.endsWith(" desc")) {
+							// If mOrderBy ends with desc, then the last record of desc order will be the first record of asc order, so we remove the desc.
+							mOrderBy = mOrderBy.replace(" desc", "");
+						} else {
+							// If mOrderBy not ends with desc, then the last record of asc order will be the first record of desc order, so we add the desc.
+							mOrderBy += " desc";
+						}
+					}
+					if (!"0".equals(mLimit)) {
+						mLimit = "1";
+					}
 				}
+		        List<T> list = find(modelClass, isEager);
+		        int size = list.size();
+		        if (size > 0) {
+		            return list.get(size - 1);
+		        }
+		        return null;
+			} finally {
+				mOrderBy = orderByTemp;
+				mLimit = limitTemp;
 			}
-			if (!"0".equals(mLimit)) {
-				mLimit = "1";
-			}
-		}
-        List<T> list = find(modelClass, isEager);
-        mOrderBy = orderByTemp;
-        mLimit = limitTemp;
-        int size = list.size();
-        if (size > 0) {
-            return list.get(size - 1);
-        }
-        return null;
-    }
+	    }
 
 
 	/**

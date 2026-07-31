@@ -165,7 +165,9 @@ public class Many2ManyAnalyzer extends AssociationsAnalyzer {
 			e.printStackTrace();
 			return true;
 		} finally {
-			cursor.close();
+			if (cursor != null) {
+				cursor.close();
+			}
 		}
 		return exists;
 	}

@@ -49,7 +49,7 @@ afterEvaluate {
                 from components.release
                 groupId = System.getenv('GROUP') ?: 'com.github.zearplay'
                 artifactId = System.getenv('ARTIFACT') ?: 'LitePal'
-                version = System.getenv('VERSION') ?: '3.2.5'
+                version = System.getenv('VERSION') ?: '3.2.6'
             }
         }
     }

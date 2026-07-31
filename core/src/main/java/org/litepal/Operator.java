@@ -54,9 +54,14 @@ import java.util.List;
  */
 public class Operator {
 
-    private static DatabaseListener dbListener = null;
+    private static volatile DatabaseListener dbListener = null;
 
-    private static final Object DATABASE_CONFIGURATION_LOCK = new Object();
+    /*
+     * Connector uses its class monitor while creating or replacing the helper.
+     * Use the same monitor for configuration changes so a database cannot be
+     * opened from a partially updated LitePalAttr.
+     */
+    private static final Object DATABASE_CONFIGURATION_LOCK = Connector.class;
 
     /**
      * Initialize to make LitePal ready to work. If you didn't configure LitePalApplication
@@ -67,7 +72,12 @@ public class Operator {
      * 		Application context.
      */
     public static void initialize(Context context) {
-        LitePalApplication.sContext = context;
+        if (context == null) {
+            LitePalApplication.sContext = null;
+        } else {
+            Context applicationContext = context.getApplicationContext();
+            LitePalApplication.sContext = applicationContext == null ? context : applicationContext;
+        }
     }
 
     /**
@@ -1040,8 +1050,13 @@ public class Operator {
      *          Collection of models which want to mark as deleted and clear their save state.
      */
     public static <T extends LitePalSupport> void markAsDeleted(Collection<T> collection) {
+        if (collection == null) {
+            return;
+        }
         for (T t : collection) {
-            t.clearSavedState();
+            if (t != null) {
+                t.clearSavedState();
+            }
         }
     }
 
